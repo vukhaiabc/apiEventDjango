@@ -24,16 +24,16 @@ class EventsViewSet(viewsets.ViewSet,generics.ListAPIView,generics.CreateAPIView
         type_event = self.request.query_params.get('type')
 
         if type_event is not None:
-            if(type_event == '1' or type_event == '2'):
+            if type_event == '1' or type_event == '2' :
                 events = events.filter(type=type_event)
             elif type_event == 'unspecified':
                 events = events.filter(type__in = ['1','2'])
         return events
 
-class EventsAPIView(APIView):
 
+class EventsAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
-    def get(self,request):
+    def get(self, request):
         events = Events.objects.filter(is_archived=0)
         keyword = self.request.query_params.get('keyword')
         if keyword is not None:
@@ -41,10 +41,10 @@ class EventsAPIView(APIView):
         type_event = self.request.query_params.get('type')
 
         if type_event is not None:
-            if (type_event == '1' or type_event == '2'):
+            if type_event == '1' or type_event == '2':
                 events = events.filter(type=type_event)
             elif type_event == 'unspecified':
                 events = events.filter(type__in=['1', '2'])
-        serializer = EventsSerializer(events,many=True)
-        return Response(data=serializer.data,status=status.HTTP_200_OK)
+        serializer = EventsSerializer(events, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 

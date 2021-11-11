@@ -11,7 +11,7 @@ class Clients(models.Model):
         (0, 'Not archived'),
         (1, 'Archived')
     )
-    client_id = models.IntegerField(primary_key=True)
+    client_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     seconds_delivered_per_month = models.DecimalField(max_digits=15, decimal_places=0, null=False)
     is_archived = models.SmallIntegerField(null=False, choices=choice_archive, default=1)
@@ -69,7 +69,7 @@ class Users(models.Model):
         (0, 'Not archived'),
         (1, 'Archived')
     )
-    user_id = models.IntegerField(primary_key=True, null=False)
+    user_id = models.AutoField(primary_key=True, null=False)
     client_id = models.ForeignKey(Clients, on_delete=models.CASCADE)
     user_type = models.SmallIntegerField(null=False, default=0,choices=choice_user )
     login_type = models.CharField(max_length=45, null=False, default='email', choices=choice_login)
@@ -90,7 +90,7 @@ class Users(models.Model):
     is_date_of_birth_public = models.SmallIntegerField(null=False, choices=choice_sex_public, default=1)
     phone = models.CharField(max_length=45, null=True)
     zip_code = models.CharField(max_length=8, null=True)
-    prefecture_id = models.ForeignKey(Prefectures, max_length=11, on_delete=models.CASCADE, null=True)
+    prefecture_id = models.ForeignKey(Prefectures, max_length=11, on_delete=models.SET_NULL, null=True)
     city = models.CharField(max_length=255, null=True)
     subsequent_address = models.CharField(max_length=255, null=True)
     biography = models.TextField(null=True)
@@ -109,4 +109,44 @@ class Users(models.Model):
     #     return self.nickname
     def __str__(self):
         return self.email
+
+
+class Box_notification_trans_content(models.Model):
+    choice_type = (
+        (1, 'Host user'),
+        (2, 'Client user (Mgmt portal user)'),
+        (3, 'System admin user( Mgmt portal user)'))
+    choice_deliver = (
+        (0, 'Not delivered'),
+        (1, 'Delivered'))
+    box_notification_trans_content_id = models.AutoField(primary_key=True)
+    client_id = models.ForeignKey(Clients, on_delete=models.CASCADE)
+    from_type = models.IntegerField(choices=choice_type, default=1)
+    from_user_id = models.IntegerField(null=True)
+    title = models.CharField(max_length=255)
+    body = models.TextField()
+    to_user_ids = models.TextField(null=True)
+    scheduled_at = models.DateTimeField(auto_now_add=True)
+    is_delivered = models.IntegerField(choices=choice_deliver)
+    delivered_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+class Image_paths(models.Model):
+    id = models.AutoField(primary_key=True, null=False)
+    user_id = models.ForeignKey(Users, on_delete = models.CASCADE)
+    client_id = models.ForeignKey(Clients, on_delete = models.CASCADE)
+    box_notification_trans_content_id = models.ForeignKey(Box_notification_trans_content, on_delete = models.CASCADE)
+    file_name = models.CharField(max_length=255, null=False)
+    dir_path = models.CharField(max_length=255, null=False)
+    image_url = models.CharField(max_length=255,null=False)
+    display_order = models.SmallIntegerField(null=False)
+    created_at = models.DateTimeField(null=False, auto_now_add = True)
+    updated_at = models.DateTimeField(null=False, auto_now = True)
+
+    def __str__(self):
+        return self.file_name
 
