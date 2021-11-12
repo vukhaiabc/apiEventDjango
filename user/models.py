@@ -2,11 +2,10 @@ from django.db import models
 
 from django.db import models
 from django.db.models.base import Model
-from django.db.models.deletion import CASCADE
-
+from event.models import Event
 
 # Create your models here.
-class Clients(models.Model):
+class Client(models.Model):
     choice_archive = (
         (0, 'Not archived'),
         (1, 'Archived')
@@ -35,7 +34,7 @@ class Prefectures(models.Model):
     def __str__(self):
         return self.name
 
-class Users(models.Model):
+class User(models.Model):
     choice_user = (
         (1, 'General user'),
         (2, 'Host user')
@@ -70,7 +69,7 @@ class Users(models.Model):
         (1, 'Archived')
     )
     user_id = models.AutoField(primary_key=True, null=False)
-    client_id = models.ForeignKey(Clients, on_delete=models.CASCADE)
+    client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
     user_type = models.SmallIntegerField(null=False, default=0,choices=choice_user )
     login_type = models.CharField(max_length=45, null=False, default='email', choices=choice_login)
     email = models.CharField(max_length=254, null=True)
@@ -120,7 +119,7 @@ class Box_notification_trans_content(models.Model):
         (0, 'Not delivered'),
         (1, 'Delivered'))
     box_notification_trans_content_id = models.AutoField(primary_key=True)
-    client_id = models.ForeignKey(Clients, on_delete=models.CASCADE)
+    client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
     from_type = models.IntegerField(choices=choice_type, default=1)
     from_user_id = models.IntegerField(null=True)
     title = models.CharField(max_length=255)
@@ -137,12 +136,12 @@ class Box_notification_trans_content(models.Model):
 
 class Image_paths(models.Model):
     id = models.AutoField(primary_key=True, null=False)
-    user_id = models.ForeignKey(Users, on_delete = models.CASCADE)
-    client_id = models.ForeignKey(Clients, on_delete = models.CASCADE)
-    box_notification_trans_content_id = models.ForeignKey(Box_notification_trans_content, on_delete = models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete = models.SET_NULL,null=True,blank=True)
+    event_id = models.ForeignKey(Event, on_delete = models.SET_NULL,null=True,blank=True,related_name='event_img')
+    box_notification_trans_content_id = models.ForeignKey(Box_notification_trans_content, on_delete = models.SET_NULL,null=True,blank=True)
     file_name = models.CharField(max_length=255, null=False)
     dir_path = models.CharField(max_length=255, null=False)
-    image_url = models.CharField(max_length=255,null=False)
+    image_url = models.CharField(max_length=255,null=True,blank=True)
     display_order = models.SmallIntegerField(null=False)
     created_at = models.DateTimeField(null=False, auto_now_add = True)
     updated_at = models.DateTimeField(null=False, auto_now = True)
@@ -150,3 +149,6 @@ class Image_paths(models.Model):
     def __str__(self):
         return self.file_name
 
+    def save(self, *args, **kwargs):
+        self.image_url = self.file_name+self.dir_path
+        super(Image_paths, self).save(*args, **kwargs)

@@ -1,7 +1,7 @@
 from django.db import models
-from users.models import Clients
+# from user.models import Clients
 # Create your models here.
-class Events(models.Model) :
+class Event(models.Model) :
     choice_type = (
     (1 , 'Live stream event'),
     (2 , 'Office event'))
@@ -12,7 +12,7 @@ class Events(models.Model) :
     (0 , 'Not archived'),
     (1 , 'Archived'))
     event_id = models.AutoField(primary_key=True)
-    client_id = models.ForeignKey(Clients, on_delete=models.CASCADE)
+    client_id = models.ForeignKey("user.Client", on_delete=models.CASCADE)
     type = models.IntegerField(choices = choice_type)
     title = models.CharField(max_length=255)
     body = models.TextField()

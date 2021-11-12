@@ -7,5 +7,6 @@ router.register('event',views.EventsViewSet,'event')
 
 urlpatterns = [
     path('',include(router.urls)),
-    path('eventtest/',views.EventsAPIView.as_view())
+    path('eventtest/',views.EventsAPIView.as_view()),
+    path('eventtest/<int:pk>/',views.DetailEvent.as_view())
 ]
