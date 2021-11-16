@@ -12,7 +12,7 @@ class Event(models.Model) :
     (0 , 'Not archived'),
     (1 , 'Archived'))
     event_id = models.AutoField(primary_key=True)
-    client_id = models.ForeignKey("user.Client", on_delete=models.CASCADE)
+    client = models.ForeignKey("user.Client", on_delete=models.CASCADE)
     type = models.IntegerField(choices = choice_type)
     title = models.CharField(max_length=255)
     body = models.TextField()

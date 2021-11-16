@@ -1,8 +1,7 @@
 from django.db import models
-
-from django.db import models
-from django.db.models.base import Model
 from event.models import Event
+from django.contrib.auth.models import AbstractUser
+
 
 # Create your models here.
 class Client(models.Model):
@@ -34,7 +33,7 @@ class Prefectures(models.Model):
     def __str__(self):
         return self.name
 
-class User(models.Model):
+class User(AbstractUser):
     choice_user = (
         (1, 'General user'),
         (2, 'Host user')
@@ -69,45 +68,42 @@ class User(models.Model):
         (1, 'Archived')
     )
     user_id = models.AutoField(primary_key=True, null=False)
-    client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
-    user_type = models.SmallIntegerField(null=False, default=0,choices=choice_user )
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, blank=True,null=True)
+    user_type = models.SmallIntegerField(null=False, default=0,choices=choice_user)
     login_type = models.CharField(max_length=45, null=False, default='email', choices=choice_login)
-    email = models.CharField(max_length=254, null=True)
-    password = models.CharField(max_length=255, null=True)
-    remember_token = models.CharField(max_length=255, null=True)
-    facebook_id = models.CharField(max_length=255, null=True)
-    twitter_id = models.CharField(max_length=255, null=True)
-    apple_id = models.CharField(max_length=255, null=True)
-    last_name_kanji = models.CharField(max_length=255, null=False)
-    first_name_kanji = models.CharField(max_length=255, null=False)
-    last_name_kana = models.CharField(max_length=255, null=False)
-    first_name_kana = models.CharField(max_length=255, null=False)
-    nickname = models.CharField(max_length=255, null=False)
+    remember_token = models.CharField(max_length=255, null=True,blank=True)
+    facebook_id = models.CharField(max_length=255, null=True,blank=True)
+    twitter_id = models.CharField(max_length=255, null=True, blank=True)
+    apple_id = models.CharField(max_length=255, null=True , blank=True)
+    last_name_kanji = models.CharField(max_length=255, null=False,blank=True)
+    first_name_kanji = models.CharField(max_length=255, null=False,blank=True)
+    last_name_kana = models.CharField(max_length=255, null=False,blank=True)
+    first_name_kana = models.CharField(max_length=255, null=False,blank=True)
+    nickname = models.CharField(max_length=255, null=False,blank=True)
     sex = models.SmallIntegerField(null=False, choices=choice_sex, default=1)
     is_sex_public = models.SmallIntegerField(null=False, choices=choice_sex_public, default=1)
-    date_of_birth = models.DateField(null=False)
+    date_of_birth = models.DateField(null=True,blank=True)
     is_date_of_birth_public = models.SmallIntegerField(null=False, choices=choice_sex_public, default=1)
-    phone = models.CharField(max_length=45, null=True)
-    zip_code = models.CharField(max_length=8, null=True)
-    prefecture_id = models.ForeignKey(Prefectures, max_length=11, on_delete=models.SET_NULL, null=True)
-    city = models.CharField(max_length=255, null=True)
-    subsequent_address = models.CharField(max_length=255, null=True)
-    biography = models.TextField(null=True)
-    points_balance = models.DecimalField(max_digits=15, decimal_places=0, null=False)
-    points_reveived = models.DecimalField(max_digits=15, decimal_places=0, null=False)
-    stamps_balance = models.DecimalField(max_digits=15, decimal_places=0, null=False)
-    econtext_cus_id = models.CharField(max_length=255, null=True)
-    delux_membership = models.CharField(max_length=255, null=True)
+    phone = models.CharField(max_length=45, null=True , blank=True)
+    zip_code = models.CharField(max_length=8, null=True,blank=True)
+    prefecture_id = models.ForeignKey(Prefectures, max_length=11, on_delete=models.SET_NULL, null=True,blank=True)
+    city = models.CharField(max_length=255, null=True,blank=True)
+    subsequent_address = models.CharField(max_length=255, null=True,blank=True)
+    biography = models.TextField(null=True,blank=True)
+    points_balance = models.DecimalField(max_digits=15, decimal_places=0, null=True,blank=True)
+    points_reveived = models.DecimalField(max_digits=15, decimal_places=0, null=True, blank=True)
+    stamps_balance = models.DecimalField(max_digits=15, decimal_places=0, null=True,blank=True)
+    econtext_cus_id = models.CharField(max_length=255, null=True, blank=True)
+    delux_membership = models.CharField(max_length=255, null=True,blank=True)
     host_user_type = models.SmallIntegerField(null=True, choices=choice_user_type, default=1)
-    is_authenticated = models.SmallIntegerField(null=False, default=1, choices=choice_auth)
-    is_archived = models.SmallIntegerField(null=False, default=1, choices=choice_archive)
+    isAuthenticated = models.SmallIntegerField(null=True, default=1, choices=choice_auth)
+    is_archived = models.SmallIntegerField(null= True, default=1, choices=choice_archive)
     created_at = models.DateTimeField(null=False, auto_now_add=True)
     updated_at = models.DateTimeField(null=False, auto_now=True)
 
-    # def __str__(self):
-    #     return self.nickname
+
     def __str__(self):
-        return self.email
+        return self.username
 
 
 class Box_notification_trans_content(models.Model):
@@ -119,7 +115,7 @@ class Box_notification_trans_content(models.Model):
         (0, 'Not delivered'),
         (1, 'Delivered'))
     box_notification_trans_content_id = models.AutoField(primary_key=True)
-    client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
     from_type = models.IntegerField(choices=choice_type, default=1)
     from_user_id = models.IntegerField(null=True)
     title = models.CharField(max_length=255)
@@ -135,9 +131,8 @@ class Box_notification_trans_content(models.Model):
         return self.title
 
 class Image_paths(models.Model):
-    id = models.AutoField(primary_key=True, null=False)
-    user_id = models.ForeignKey(User, on_delete = models.SET_NULL,null=True,blank=True)
-    event_id = models.ForeignKey(Event, on_delete = models.SET_NULL,null=True,blank=True,related_name='event_img')
+    user = models.ForeignKey(User, on_delete = models.SET_NULL,null=True,blank=True)
+    event = models.ForeignKey(Event, on_delete = models.SET_NULL,null=True,blank=True,related_name='event_img')
     box_notification_trans_content_id = models.ForeignKey(Box_notification_trans_content, on_delete = models.SET_NULL,null=True,blank=True)
     file_name = models.CharField(max_length=255, null=False)
     dir_path = models.CharField(max_length=255, null=False)
@@ -146,8 +141,8 @@ class Image_paths(models.Model):
     created_at = models.DateTimeField(null=False, auto_now_add = True)
     updated_at = models.DateTimeField(null=False, auto_now = True)
 
-    def __str__(self):
-        return self.file_name
+    # def __str__(self):
+    #     return self.file_name
 
     def save(self, *args, **kwargs):
         self.image_url = self.file_name+self.dir_path

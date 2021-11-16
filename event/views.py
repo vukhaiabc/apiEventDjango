@@ -1,5 +1,7 @@
 from django.http import Http404
 from rest_framework import viewsets,generics,permissions
+from rest_framework.settings import api_settings
+from commons.pagination import PaginationAPIView
 from .serializers import EventSerializer
 from .paginator import EventPagination
 from .models import Event
@@ -13,10 +15,10 @@ class EventsViewSet(viewsets.ViewSet,generics.ListAPIView):
     pagination_class = EventPagination
     # permission_classes = [permissions.IsAuthenticated]
 
-    # def get_permissions(self):
-    #     if self.action in ['retrieve','list']:
-    #         return [permissions.IsAuthenticated()]
-    #     return [permissions.AllowAny()]
+    def get_permissions(self):
+        if self.action in ['retrieve','list']:
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
 
     def get_queryset(self):
         events = Event.objects.filter(is_archived = 0)
@@ -33,10 +35,13 @@ class EventsViewSet(viewsets.ViewSet,generics.ListAPIView):
         return events
 
 
-class EventsAPIView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
+class EventsAPIView(PaginationAPIView):
+    queryset = Event.objects.filter(is_archived=0)
+    pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
+    serializer_class = EventSerializer
+    permission_classes = (permissions.AllowAny,)
     def get(self, request):
-        events = Event.objects.filter(is_archived=0)
+        events = self.paginate_queryset(self.queryset)
         keyword = self.request.query_params.get('keyword')
         if keyword is not None:
             events = events.filter(title__icontains=keyword)
@@ -47,8 +52,10 @@ class EventsAPIView(APIView):
                 events = events.filter(type=type_event)
             elif type_event == '':
                 events = events.filter(type__in=['1', '2'])
-        serializer = EventSerializer(events, many=True)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        if events is not None :
+            serializer = self.serializer_class(events, many=True)
+        return self.get_paginated_response(serializer.data)
+    
     def post(self,request):
         event = request.data
         serializer = EventSerializer(data=event)
