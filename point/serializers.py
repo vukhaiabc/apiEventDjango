@@ -7,7 +7,7 @@ class PointUserSerializer(serializers.ModelSerializer):
         fields = '__all__'
     def create(self, validated_data):
         user_point = User_point(**validated_data)
-        user = validated_data.get('user')
+        user = user_point.user
         print(user.user_id)
         if user is not None :
             user.points_balance = validated_data.get('points_balance')

@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'masterdata',
     'rest_framework_simplejwt',
     'commons',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -142,7 +143,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 # Default primary key field type

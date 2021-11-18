@@ -145,5 +145,5 @@ class Image_paths(models.Model):
     #     return self.file_name
 
     def save(self, *args, **kwargs):
-        self.image_url = self.file_name+self.dir_path
+        self.image_url = self.dir_path+self.file_name
         super(Image_paths, self).save(*args, **kwargs)

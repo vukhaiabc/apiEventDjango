@@ -1,19 +1,22 @@
+import django_filters.rest_framework
 from django.shortcuts import render
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-
 from rest_framework.settings import api_settings
 from commons.pagination import PaginationAPIView
+from .filters import UserFilter
 from .models import User
 from .serializers import UserSerializer
 from commons.permission import CustomPermission
-
+from django_filters import rest_framework as filters
 class UserAPIView(PaginationAPIView):
     queryset = User.objects.filter(is_active = True)
     serializer_class = UserSerializer
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
     permission_classes = [AllowAny,]
+    filter_backends = [filters.DjangoFilterBackend,]
+    filterset_class = UserFilter
 
     def get(self,request):
         user = self.paginate_queryset(self.queryset)
