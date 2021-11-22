@@ -42,14 +42,14 @@ class EventsViewSet(viewsets.ViewSet,generics.ListAPIView):
     #             events = events.filter(type__in = ['1','2'])
     #     return events
 
-class TicketViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIView):
+class TicketViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIView,viewsets.ReadOnlyModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
     permission_classes = [permissions.AllowAny,]
     pagination_class = EventPagination
     def get_permissions(self):
-        if self.action in ['drawings','retrieve']:
-            return [permissions.IsAuthenticated()]
+        if self.action in ['retrieve','drawings']:
+            return [permissions.IsAuthenticated(),]
         return [permissions.AllowAny()]
     @action( methods=['post'],detail = True)
     def drawings(self,request,pk):
@@ -58,18 +58,25 @@ class TicketViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIVi
             ticket = self.get_object()
         except Http404:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        id_user = request.data.get('user_id')
-        if id_user is not None :
-            user = get_object_or_404(User, user_id = id_user)
+        user = request.user
+        if user is not None :
             if user.user_type != 1 or user.isAuthenticated != 1 or user.is_archived != 0:
                 flag = False
-        per = ticket.performance
-        event = per.event
+        # per = ticket.performance
+        # event = per.event
         now = datetime.now()
-        if event.client != user.client or event.is_archived != 0 :
-            flag = False
-        if per.ticket_available_flag != 1 or ticket.drawing_flag != 1 or ticket.drawing_status !=0 or datetime.date(ticket.drawing_application_deadline) <= now.date():
-            flag = False
+        try :
+            t = Ticket.objects.get(ticket_id=ticket.ticket_id,drawing_flag=1,drawing_status=0,
+                                      drawing_application_deadline__gt=now,performance__ticket_available_flag=1,
+                                      performance__event__client = user.client,performance__event__is_archived=0)
+        except Ticket.DoesNotExist :
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+        # if event.client != user.client or event.is_archived != 0 :
+        #     flag = False
+        # if per.ticket_available_flag != 1 or ticket.drawing_flag != 1 or ticket.drawing_status !=0 or datetime.date(ticket.drawing_application_deadline) <= now.date():
+        #     flag = False
         if flag == True :
             drawing = Drawing.objects.create(ticket_id = ticket,user= user,is_elected=0,is_purchased=0)
             serializer = TicketDrawingSerializer(ticket)

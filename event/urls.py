@@ -4,7 +4,7 @@ from . import views
 app_name = 'event_app'
 router = DefaultRouter()
 router.register('event', views.EventsViewSet, 'event')
-router.register('ticked',views.TicketViewSet,'ticked')
+router.register('ticket',views.TicketViewSet,'ticket')
 urlpatterns = [
     path('',include(router.urls)),
     path('eventtest/', views.EventsAPIView.as_view()),
