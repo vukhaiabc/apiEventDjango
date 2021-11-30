@@ -1,9 +1,11 @@
 import django_filters.rest_framework
 from django.shortcuts import render
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.settings import api_settings
+from rest_framework.views import APIView
+from django.shortcuts import Http404
 from commons.pagination import PaginationAPIView
 from .filters import UserFilter
 from .models import User
@@ -29,3 +31,13 @@ class UserAPIView(PaginationAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserCurrentAPIView(APIView):
+    permission_classes = [IsAuthenticated,]
+    def get(self,request):
+        try :
+            user = request.user
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)

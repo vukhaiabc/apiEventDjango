@@ -71,15 +71,6 @@ class User(AbstractUser):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, blank=True,null=True)
     user_type = models.SmallIntegerField(null=False, default=0,choices=choice_user)
     login_type = models.CharField(max_length=45, null=False, default='email', choices=choice_login)
-    remember_token = models.CharField(max_length=255, null=True,blank=True)
-    facebook_id = models.CharField(max_length=255, null=True,blank=True)
-    twitter_id = models.CharField(max_length=255, null=True, blank=True)
-    apple_id = models.CharField(max_length=255, null=True , blank=True)
-    last_name_kanji = models.CharField(max_length=255, null=False,blank=True)
-    first_name_kanji = models.CharField(max_length=255, null=False,blank=True)
-    last_name_kana = models.CharField(max_length=255, null=False,blank=True)
-    first_name_kana = models.CharField(max_length=255, null=False,blank=True)
-    nickname = models.CharField(max_length=255, null=False,blank=True)
     sex = models.SmallIntegerField(null=False, choices=choice_sex, default=1)
     is_sex_public = models.SmallIntegerField(null=False, choices=choice_sex_public, default=1)
     date_of_birth = models.DateField(null=True,blank=True)
@@ -87,14 +78,8 @@ class User(AbstractUser):
     phone = models.CharField(max_length=45, null=True , blank=True)
     zip_code = models.CharField(max_length=8, null=True,blank=True)
     prefecture_id = models.ForeignKey(Prefectures, max_length=11, on_delete=models.SET_NULL, null=True,blank=True)
-    city = models.CharField(max_length=255, null=True,blank=True)
-    subsequent_address = models.CharField(max_length=255, null=True,blank=True)
     biography = models.TextField(null=True,blank=True)
     points_balance = models.DecimalField(max_digits=15, decimal_places=0, null=True,blank=True)
-    points_reveived = models.DecimalField(max_digits=15, decimal_places=0, null=True, blank=True)
-    stamps_balance = models.DecimalField(max_digits=15, decimal_places=0, null=True,blank=True)
-    econtext_cus_id = models.CharField(max_length=255, null=True, blank=True)
-    delux_membership = models.CharField(max_length=255, null=True,blank=True)
     host_user_type = models.SmallIntegerField(null=True, choices=choice_user_type, default=1)
     isAuthenticated = models.SmallIntegerField(null=True, default=1, choices=choice_auth)
     is_archived = models.SmallIntegerField(null= True, default=1, choices=choice_archive)
@@ -105,6 +90,11 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+class Address(models.Model):
+    recipient_phone = models.CharField(max_length=15, null=False,blank=False)
+    address_detail = models.TextField(default='',null=False,blank=False)
+    recipient_name = models.CharField(max_length=50,default=None)
+    user_id = models.ForeignKey(User,on_delete=models.CASCADE,null=False,blank=False)
 
 class Box_notification_trans_content(models.Model):
     choice_type = (

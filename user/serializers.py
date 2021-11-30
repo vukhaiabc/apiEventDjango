@@ -1,4 +1,6 @@
 from rest_framework.serializers import ModelSerializer,Serializer
+
+from commons.exceptions import ValidationError
 from .models import Image_paths,User
 from rest_framework import serializers
 import re
@@ -9,10 +11,18 @@ class ImagePathSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
     class Meta :
         model = User
-        fields = ['user_id','email','username','password','phone']
+        fields = ['email','username','password','phone','first_name','last_name','user_id']
         extra_kwargs = {
             'password': {'write_only': True, 'required' : True}
         }
+    def validate(self, data):
+        try :
+            user = User.objects.get(username=data['username'])
+            print(user)
+            raise ValidationError(detail="User đã tồn tại !!!")
+        except User.DoesNotExist:
+            return data
+        return data
 
     def create(self, validated_data):
         print(validated_data)
@@ -24,7 +34,7 @@ class UserSerializer(ModelSerializer):
             match = re.match(pattern, validated_data.get('phone'))
             if match :
                 user.phone = validated_data.get('phone')
-                user.save()
             else :
-                raise serializers.ValidationError('phone not match')
+                raise ValidationError(detail='phone not match')
+        user.save()
         return user

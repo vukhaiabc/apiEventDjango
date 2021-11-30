@@ -1,5 +1,5 @@
 from django.http import Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets,generics,permissions
 from rest_framework.settings import api_settings
 from commons.pagination import PaginationAPIView
@@ -15,8 +15,9 @@ from django.http import Http404
 from rest_framework.decorators import action
 from user.models import User
 from datetime import datetime
+from django.views import View
 
-class EventsViewSet(viewsets.ViewSet,generics.ListAPIView):
+class EventsViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveUpdateAPIView):
     queryset = Event.objects.prefetch_related('eauu').filter(is_archived = 0)
     serializer_class = EventSerializer
     pagination_class = EventPagination
@@ -48,7 +49,7 @@ class TicketViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIVi
     permission_classes = [permissions.AllowAny,]
     pagination_class = EventPagination
     def get_permissions(self):
-        if self.action in ['retrieve','drawings']:
+        if self.action in ['drawings']:
             return [permissions.IsAuthenticated(),]
         return [permissions.AllowAny()]
     @action( methods=['post'],detail = True)
@@ -115,6 +116,7 @@ class EventsAPIView(PaginationAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class DetailEvent(APIView):
+    permission_classes = (permissions.AllowAny,)
     def get_object(self,pk):
         try:
             return Event.objects.get(event_id = pk)
@@ -134,6 +136,17 @@ class DetailEvent(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, pk, format=None):
+        event = self.get_object(pk)
+        event.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
+class IndexEventView(View):
+    def get(self,request):
+        events = Event.objects.filter(is_archived = 0)
+        context = {
+            'events' : events
+        }
+        return render(request,'eventhtml.html',context)
 
 

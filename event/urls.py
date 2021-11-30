@@ -8,5 +8,7 @@ router.register('ticket',views.TicketViewSet,'ticket')
 urlpatterns = [
     path('',include(router.urls)),
     path('eventtest/', views.EventsAPIView.as_view()),
-    path('eventtest/<int:pk>/', views.DetailEvent.as_view())
+    path('eventtest/<int:pk>/', views.DetailEvent.as_view()),
+    path('eventbasic/',views.IndexEventView.as_view(),name = 'index_event')
+
 ]
