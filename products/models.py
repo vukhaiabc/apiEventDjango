@@ -28,6 +28,7 @@ class Tag(BaseItem):
 
 class Product(BaseItem):
     price = models.DecimalField(max_digits=10,decimal_places=2,null=False,validators=[MinValueValidator(0)])
+    price_old = models.DecimalField(max_digits=10,decimal_places=2,null=True,validators=[MinValueValidator(0)],blank=True)
     quantity = models.PositiveIntegerField(default=1000)
     amount_sold = models.PositiveIntegerField(default=0)
     hot = models.BooleanField(default=False)
