@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer,Serializer
 
 from commons.exceptions import ValidationError
-from .models import Image_paths,User
+from .models import Image_paths,User,Address
 from rest_framework import serializers
 import re
 class ImagePathSerializer(ModelSerializer):
@@ -38,3 +38,7 @@ class UserSerializer(ModelSerializer):
                 raise ValidationError(detail='phone not match')
         user.save()
         return user
+class AddressSerializer(ModelSerializer):
+    class Meta :
+        model = Address
+        fields='__all__'

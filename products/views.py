@@ -1,18 +1,20 @@
 from statistics import mean
 
+from django.http import Http404
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
-
+from rest_framework.response import Response
+from rest_framework import status
 from .filters import ProductFilter
 from .models import *
 from commons.models import BasePagination
 # Create your views here.
 from rest_framework import viewsets, generics, permissions
 import math
-from products.serializers import ProductSerializer, CategorySerializer, BrandSerializer
+from products.serializers import ProductSerializer, CategorySerializer, BrandSerializer, ProductDetailSerializer
 
 
-class ProductViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIView):
+class ProductViewSet(viewsets.ViewSet,generics.ListAPIView):
     queryset = Product.objects.filter(is_active = True)
     serializer_class = ProductSerializer
     pagination_class = BasePagination
@@ -68,6 +70,14 @@ class ProductViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIV
                 products = products.order_by('productview__views')[::-1]
 
         return products
+
+    def retrieve(self, request, pk=None):
+        try:
+            product= Product.objects.get(pk=pk)
+        except Product.DoesNotExist:
+            raise Http404
+        serializer = ProductDetailSerializer(product)
+        return Response(data=serializer.data,status=status.HTTP_200_OK)
 class CategoryViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIView):
     queryset = Category.objects.filter(is_active = True)
     serializer_class = CategorySerializer

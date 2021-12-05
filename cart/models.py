@@ -51,7 +51,6 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     active = models.BooleanField(default=True)
     discount = models.DecimalField(max_digits=10,decimal_places=2,null=False,blank=False,default=0)
-    price = models.DecimalField(max_digits=10,decimal_places=2,null=False,blank=False)
     des = models.TextField(default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

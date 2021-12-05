@@ -8,8 +8,8 @@ from rest_framework.views import APIView
 from django.shortcuts import Http404
 from commons.pagination import PaginationAPIView
 from .filters import UserFilter
-from .models import User
-from .serializers import UserSerializer
+from .models import User,Address
+from .serializers import UserSerializer,AddressSerializer
 from commons.permission import CustomPermission
 from django_filters import rest_framework as filters
 class UserAPIView(PaginationAPIView):
@@ -41,3 +41,13 @@ class UserCurrentAPIView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+class AddressAPIView(APIView):
+    permission_classes = [IsAuthenticated, ]
+    def get(self, request):
+        try:
+            user = request.user
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        address_user = Address.objects.filter(user_id =user)
+        serializer = AddressSerializer(address_user,many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
