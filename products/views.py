@@ -24,9 +24,11 @@ class ProductViewSet(viewsets.ViewSet,generics.ListAPIView):
 
     def get_queryset(self):
         products = Product.objects.filter(is_active = True)
-
+        name_product = self.request.query_params.get('name')
         category_id = self.request.query_params.get('categoryId')
         brand_str = self.request.query_params.get('brandName')
+        if name_product is not None:
+            products = products.filter(name__icontains=name_product)
         if category_id is not None:
             products = products.filter(category_id=category_id)
         if brand_str is not None:
