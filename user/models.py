@@ -85,7 +85,7 @@ class User(AbstractUser):
     is_archived = models.SmallIntegerField(null= True, default=1, choices=choice_archive)
     created_at = models.DateTimeField(null=False, auto_now_add=True)
     updated_at = models.DateTimeField(null=False, auto_now=True)
-
+    avatar = models.CharField(max_length=255,null=True,blank= True)
 
     def __str__(self):
         return self.username

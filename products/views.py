@@ -8,7 +8,7 @@ from rest_framework import status
 from .filters import ProductFilter
 from .models import *
 from commons.models import BasePagination
-# Create your views here.
+from django.db.models import F
 from rest_framework import viewsets, generics, permissions
 import math
 from products.serializers import ProductSerializer, CategorySerializer, BrandSerializer, ProductDetailSerializer
@@ -78,6 +78,12 @@ class ProductViewSet(viewsets.ViewSet,generics.ListAPIView):
             product= Product.objects.get(pk=pk)
         except Product.DoesNotExist:
             raise Http404
+        productView, _ = ProductView.objects.get_or_create(product=product)
+        productView.views = F('views') + 1
+        productView.save()
+
+        productView.refresh_from_db()
+
         serializer = ProductDetailSerializer(product)
         return Response(data=serializer.data,status=status.HTTP_200_OK)
 class CategoryViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIView):

@@ -11,7 +11,7 @@ class ImagePathSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
     class Meta :
         model = User
-        fields = ['email','username','password','phone','first_name','last_name','user_id']
+        fields = ['email','username','password','phone','first_name','last_name','user_id','avatar']
         extra_kwargs = {
             'password': {'write_only': True, 'required' : True}
         }
