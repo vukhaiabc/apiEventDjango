@@ -23,11 +23,14 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
-        return self.user
+        return self.user.username
 class OrderItem(models.Model):
-    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, null=False, blank=False)
-    order = models.ForeignKey(Order, models.CASCADE, null=False, blank=False)
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, null=False, blank=False,)
+    order = models.ForeignKey(Order, models.CASCADE, null=False, blank=False,related_name='orderitem')
     quantity = models.PositiveIntegerField(default=1)
     active = models.BooleanField(default=True)
     des = models.TextField(default='')
