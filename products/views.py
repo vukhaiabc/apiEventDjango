@@ -1,17 +1,18 @@
 from statistics import mean
-
 from django.http import Http404
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import action
 from .filters import ProductFilter
 from .models import *
 from commons.models import BasePagination
 from django.db.models import F
 from rest_framework import viewsets, generics, permissions
 import math
-from products.serializers import ProductSerializer, CategorySerializer, BrandSerializer, ProductDetailSerializer
+from products.serializers import ProductSerializer, CategorySerializer, BrandSerializer, ProductDetailSerializer, \
+    ActionSerializer, RatingSerializer , ProductCommentSerializer
 
 
 class ProductViewSet(viewsets.ViewSet,generics.ListAPIView):
@@ -20,8 +21,12 @@ class ProductViewSet(viewsets.ViewSet,generics.ListAPIView):
     pagination_class = BasePagination
     filter_backends = [DjangoFilterBackend,]
     # filterset_class = ProductFilter
-    permission_classes = [permissions.AllowAny,]
 
+
+    def get_permissions(self):
+        if self.action in  ['retrieve','take_action','take_rating','addcomment'] :
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
     def get_queryset(self):
         products = Product.objects.filter(is_active = True)
         name_product = self.request.query_params.get('name')
@@ -86,6 +91,48 @@ class ProductViewSet(viewsets.ViewSet,generics.ListAPIView):
 
         serializer = ProductDetailSerializer(product)
         return Response(data=serializer.data,status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path='addcomment')
+    def add_comment(self, request, pk):
+        try:
+            product = self.get_object()
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        content = request.data.get('content')
+        if content:
+            comment = ProductComment.objects.create(content=content, product=product, creator=request.user)
+            return Response(data=ProductCommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=True, url_path='like')
+    def take_action(self, request, pk):
+        try:
+            product = self.get_object()
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        try:
+            type_action = int(request.data.get('type'))
+        except ValueError | IndexError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            action = Action.objects.create(type=type_action, product=product, creator=request.user)
+            return Response(data=ActionSerializer(action).data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path='rating')
+    def take_rating(self, request, pk):
+        try:
+            product = self.get_object()
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        try:
+            rate = int(request.data.get('rate'))
+        except ValueError | IndexError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            r = Rating.objects.create(rate=rate, product=product, creator=request.user)
+            return Response(data=RatingSerializer(r).data, status=status.HTTP_200_OK)
+
+
 class CategoryViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIView):
     queryset = Category.objects.filter(is_active = True)
     serializer_class = CategorySerializer
@@ -95,3 +142,18 @@ class BrandViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIVie
     queryset = Brand.objects.filter(is_active = True)
     serializer_class = BrandSerializer
     permission_classes = [permissions.AllowAny,]
+
+class ProductCommentViewSet(viewsets.ViewSet,generics.DestroyAPIView,generics.UpdateAPIView):
+    queryset = ProductComment.objects.filter(active = True)
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ProductCommentSerializer
+
+    def destroy(self,request, *args, **kwargs):
+        if request.user == self.get_object().creator :
+            return super().destroy(request, *args, **kwargs)
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    def partial_update(self,request, *args, **kwargs):
+        if request.user == self.get_object().creator :
+            return super().partial_update(request, *args, **kwargs)
+        return Response(status=status.HTTP_403_FORBIDDEN)

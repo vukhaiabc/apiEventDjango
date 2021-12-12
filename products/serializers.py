@@ -88,3 +88,18 @@ class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
         fields = '__all__'
+
+class ActionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Action
+        fields = ['id','created_date', 'product','type','creator']
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta :
+        model = Rating
+        fields = ['id', 'created_date', 'product', 'rate', 'creator']
+
+class ProductCommentSerializer(serializers.ModelSerializer):
+    class Meta :
+        model = ProductComment
+        fields = ['id', 'content', 'creator', 'product', 'created_date']
