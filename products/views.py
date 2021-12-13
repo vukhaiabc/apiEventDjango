@@ -24,7 +24,7 @@ class ProductViewSet(viewsets.ViewSet,generics.ListAPIView):
 
 
     def get_permissions(self):
-        if self.action in  ['retrieve','take_action','take_rating','addcomment'] :
+        if self.action in  ['take_action','take_rating','addcomment'] :
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
     def get_queryset(self):
@@ -118,6 +118,17 @@ class ProductViewSet(viewsets.ViewSet,generics.ListAPIView):
             action = Action.objects.create(type=type_action, product=product, creator=request.user)
             return Response(data=ActionSerializer(action).data, status=status.HTTP_200_OK)
 
+    @action(methods=['get'], detail=True, url_path='listRating',pagination_class=BasePagination)
+    def get_list_rating(self, request, pk):
+        try:
+            product = self.get_object()
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        list_rating = Rating.objects.filter(product=product)
+        serializer = RatingSerializer(list_rating,many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
     @action(methods=['post'], detail=True, url_path='rating')
     def take_rating(self, request, pk):
         try:
@@ -126,12 +137,12 @@ class ProductViewSet(viewsets.ViewSet,generics.ListAPIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         try:
             rate = int(request.data.get('rate'))
+            des = request.data.get('description')
         except ValueError | IndexError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         else:
-            r = Rating.objects.create(rate=rate, product=product, creator=request.user)
+            r = Rating.objects.create(rate=rate, product=product, des=des, creator=request.user)
             return Response(data=RatingSerializer(r).data, status=status.HTTP_200_OK)
-
 
 class CategoryViewSet(viewsets.ViewSet,generics.ListAPIView,generics.RetrieveAPIView):
     queryset = Category.objects.filter(is_active = True)

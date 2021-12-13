@@ -1,8 +1,10 @@
 from rest_framework import  serializers
+from rest_framework.validators import UniqueTogetherValidator
+from user.serializers import UserSerializer
 from .models import *
 import math
 from statistics import mean
-
+from user.models import User
 class ProductSerializer(serializers.ModelSerializer):
     img_url = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
@@ -47,9 +49,10 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     sale_percent = serializers.SerializerMethodField()
     brand = serializers.SerializerMethodField()
     colors = serializers.SerializerMethodField()
+    views = serializers.SerializerMethodField()
     class Meta :
         model = Product
-        fields = ['id','name', 'price','price_old','description','colors','hot','amount_sold','quantity','img_url','rating','infoproductelectric','infoproductbook','sale_percent','brand']
+        fields = ['id','name', 'price','price_old','description','colors','hot','amount_sold','quantity','img_url','rating','infoproductelectric','infoproductbook','sale_percent','brand','views']
     def get_img_url(self,instance):
         images = instance.image_product.all()
         images_arr = [item.image for item in images]
@@ -79,6 +82,9 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             list_colors = [item.color for item in colors ]
             return list_colors
         return ''
+    def get_views(self,instance):
+        views = instance.productview.views
+        return views
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -95,9 +101,17 @@ class ActionSerializer(serializers.ModelSerializer):
         fields = ['id','created_date', 'product','type','creator']
 
 class RatingSerializer(serializers.ModelSerializer):
+    creator = UserSerializer()
     class Meta :
         model = Rating
-        fields = ['id', 'created_date', 'product', 'rate', 'creator']
+        fields = ['id', 'created_date', 'product', 'rate', 'creator','des']
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Rating.objects.all(),
+                fields=['product', 'creator']
+            )
+        ]
+
 
 class ProductCommentSerializer(serializers.ModelSerializer):
     class Meta :

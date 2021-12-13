@@ -119,5 +119,6 @@ class Action(BaseAction):
 
 class Rating(BaseAction):
     rate = models.PositiveSmallIntegerField(default=0,validators=[MaxValueValidator(5)])
+    des = models.TextField(default='',null= True,blank=True)
     def __str__(self):
         return self.product.name
